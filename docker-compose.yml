@@ -18,7 +18,8 @@ services:
     volumes:
       - filebeat:/usr/share/filebeat/data
       - ./filebeat/filebeat.yml:/usr/share/filebeat/filebeat.yml:ro
-
+      - ./filebeat/pipelines/pipelines.yml:/usr/share/logstash/config/pipelines.yml:ro
+      - ./filebeat/pipelines:/usr/share/logstash/config/pipelines:ro
       - /Users/sergejsavcenko/apps/microservices/ads/log:/var/log/ads:ro
       - /Users/sergejsavcenko/apps/microservices/geo/log:/var/log/geo:ro
       - /Users/sergejsavcenko/apps/microservices/auth/log:/var/log/auth:ro
