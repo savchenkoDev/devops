@@ -1,0 +1,43 @@
+version: '3'
+
+services:
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: rabbitmq
+    hostname: node1
+    ports:
+      - 5672:5672 
+      - 15672:15672
+    volumes:
+      - rabbitmq:/var/lib/rabbitmq
+  filebeat:
+    image: docker.elastic.co/beats/filebeat-oss:7.10.2
+    container_name: filebeat
+    depends_on:
+      - elacticsearch
+    volumes:
+      - filebeat:/usr/share/filebeat/data
+      - ./filebeat/filebeat.yml:/usr/share/filebeat/filebeat.yml:ro
+
+      - /Users/sergejsavcenko/apps/microservices/ads/log:/var/log/ads:ro
+      - /Users/sergejsavcenko/apps/microservices/geo/log:/var/log/geo:ro
+      - /Users/sergejsavcenko/apps/microservices/auth/log:/var/log/auth:ro
+  elacticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch-oss:7.10.2
+    container_name: elacticsearch
+    volumes:
+      - elasticsearch:/usr/share/elasticsearch/data
+      - ./elasticsearch/elasticsearch.yml:/usr/share/elasticsearch/config/elasticsearch.yml:ro
+  kibana:
+    image: docker.elastic.co/kibana/kibana-oss:7.10.2
+    container_name: kibana
+    depends_on:
+      - elacticsearch
+    environment:
+      ELASTICSEARCH_HOSTS: "http://elacticsearch:9200"
+    ports:
+      - 5601:5601
+volumes:
+  rabbitmq:
+  filebeat:
+  elasticsearch:

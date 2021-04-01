@@ -1,0 +1,14 @@
+filebeat:
+  inputs:
+    - type: log
+      json:
+        message_key: message
+        keys_under_root: true
+      paths:
+        - /var/log/ads/app.log
+        - /var/log/geo/app.log
+output:
+  console:
+    pretty: true
+    bulk_max_sie: 1
+
