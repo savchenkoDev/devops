@@ -1,0 +1,24 @@
+---
+- hosts: app
+  become: yes
+  gather_facts: no
+  vars:
+    env_vars: |
+      DOCKER_USER=savchenkodev
+      DOCKER_PASSWORD=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
+      ADS_DATABASE_URL=postgresql://ads:5ca80fa77f9d548a@localhost/ads_microservice_production
+      RABBITMQ_HOST=127.0.0.1
+      RABBITMQ_USER=ads
+      RABBITMQ_PASSWORD=6679089754
+      RACK_ENV=production
+  tasks:
+    - name: ensure pip is installed
+      apt:
+        name: python3-pip
+    - name: ensure python dependencies is installed
+      pip:
+        name: docker
+    - name: ensure .env file is uploaded
+      copy:
+        content: '{{ env_vars }}'
+        dest: '/home/{{ ansible_user }}/.env'

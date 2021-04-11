@@ -1,0 +1,53 @@
+---
+- hosts: rabbitmq
+  become: yes
+  gather_facts: no
+  tasks:
+    - name: ensure trusted key is added
+      apt_key:
+        url: 'https://github.com/rabbitmq/signing-keys/releases/download/2.0/rabbitmq-release-signing-key.asc'
+        state: present
+    - name: ensure rabbitmq repositories is added
+      apt_repository:
+        repo: '{{ item }}'
+        state: present
+      with_items:
+        - 'deb https://dl.bintray.com/rabbitmq-erlang/debian focal erlang'
+        - 'deb https://dl.bintray.com/rabbitmq/debian focal main'
+    - name: ensure rabbitmq packages are installed
+      apt:
+        name: rabbitmq-server
+    - name: ensure rabbitmq plugins are installed
+      rabbitmq_plugin:
+        names: rabbitmq_management
+        state: enabled
+      notify:
+        - restart rabbitmq
+  handlers:
+    - name: restart rabbitmq
+      service:
+        name: rabbitmq-server
+        state: restarted
+- hosts: rabbitmq
+  become: yes
+  gather_facts: no
+  vars:
+    - user: ads
+    - password: '6679089754'
+  tasks:
+    - name: ensure rabbitmq user is present
+      rabbitmq_user:
+        user: '{{ user }}'
+        password: '{{ password }}'
+        node: 'rabbit@mc-lesson'
+        tags: 'administrator'
+        vhost: /
+        configure_priv: .*
+        write_priv: .*
+        read_priv: .*
+        state: present
+    - name: ensure guest user is absent
+      rabbitmq_user:
+        user: guest
+        node: 'rabbit@mc-lesson'
+        state: absent
