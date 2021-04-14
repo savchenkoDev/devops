@@ -1,0 +1,22 @@
+---
+- hosts: nginx
+  become: yes
+  gather_facts: no
+  roles:
+    - common
+  tasks:
+    - name: ensure packages are installed
+      apt:
+        name: nginx
+    - name: ensure nginx config is uploaded
+      copy:
+        src: ads.nginx.conf
+        dest: /etc/nginx/conf.d/ads.conf
+      notify:
+        - restart nginx
+  handlers:
+    - name: restart nginx
+      service:
+        name: nginx
+        state: restarted
+    
