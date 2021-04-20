@@ -1,0 +1,85 @@
+---
+- name: Install JAVA
+  hosts: app
+  gather_facts: no
+  become: yes
+  tasks:
+    - name: Add the Java PPA repo
+      apt_repository: 
+        repo: ppa:webupd8team/java
+    - name: Automatically accept the Oracle license 
+      shell: echo debconf shared/accepted-oracle-license-v1-1 select true | sudo debconf-set-selections
+    - name: Install Java 8
+      apt:
+        name: oracle-java8-installer
+        state: present
+        update_cache: yes
+- name: Install ElasticSearch
+  hosts: app
+  gather_facts: no
+  become: yes
+  tasks:
+    - name: Add Elasticsearch apt key
+      apt_key:
+        url: "https://packages.elastic.co/GPG-KEY-elasticsearch"
+        state: present
+    - name: Adding Elasticsearch repo
+      apt_repository:
+        repo: deb https://artifacts.elastic.co/packages/7.x/apt stable main
+        state: present
+    - name: Install Elasticsearch
+      apt:
+        name: elasticsearch
+        update_cache: yes
+    - name: create elasticsearch dir
+      file:
+        path: /etc/elasticsearch
+        state: directory
+    - name: copy config file
+      copy:
+        src: elasticsearch/elasticsearch.yml
+        dest: /etc/elasticsearch/elasticsearch.yml
+    - name: Starting Elasticsearch
+      service:
+        name: elasticsearch
+        state: started
+- name: Install Filebeat
+  hosts: app
+  gather_facts: no
+  become: yes
+  vars:
+    config_path: /usr/share/filebeat
+  tasks:
+    - name: Install Filebeat with apt
+      apt:
+        name: filebeat
+        update_cache: yes
+    - name: Create filebeat dir
+      file:
+        path: '{{ config_path }}'
+        state: directory
+    - name: copy config file
+      copy:
+        src: filebeat/filebeat.yml
+        dest: '{{ config_path }}/filebeat.yml'
+    - name: copy pipelines dir
+      copy:
+        src: filebeat/pipelines
+        dest: '/usr/share/logstash/config/pipelines'
+    - name: Starting Filebeat
+      service:
+        name: filebeat
+        state: started
+- name: Install Kibana
+  hosts: app
+  gather_facts: no
+  become: yes
+  tasks:
+    - name: Install Kibana with apt
+      apt:
+        name: kibana
+        update_cache: yes
+    - name: Starting Kibana
+      service:
+        name: kibana
+        state: started

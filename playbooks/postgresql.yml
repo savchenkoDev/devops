@@ -16,27 +16,62 @@
   become_user: postgres
   gather_facts: no
   vars:
-    - database: ads_microservice_production
-    - db_user: ads
-    - db_password: 5ca80fa77f9d548a
+    - ads_database: ads_microservice_production
+    - ads_db_user: ads
+    - ads_db_password: 5ca80fa77f9d548a
   tasks:
-    - name: ensure database is created
+    - name: ensure ads_database is created
       postgresql_db:
-        name: '{{ database }}'
-    - name: ensure user has access to database
+        name: '{{ ads_database }}'
+    - name: ensure user has access to ads_database
       postgresql_user:
-        db: '{{ database }}'
-        name: '{{ db_user }}'
-        password: '{{ db_password }}'
+        db: '{{ ads_database }}'
+        name: '{{ ads_db_user }}'
+        password: '{{ ads_db_password }}'
         priv: ALL
     - name: ensure user has no extra privileges
       postgresql_user:
-        name: '{{ db_user }}'
+        name: '{{ ads_db_user }}'
         role_attr_flags: NOSUPERUSER,NOCREATEDB
-    - name: ensure no other user has access to database
+    - name: ensure no other user has access to ads_database
       postgresql_privs:
-        db: '{{ database }}'
+        db: '{{ ads_database }}'
         role: PUBLIC
         type: database
         priv: ALL
         state: absent
+- hosts: db
+  become: yes
+  become_user: postgres
+  gather_facts: no
+  vars:
+    - auth_database: auth_microservice_production
+    - auth_db_user: auth
+    - auth_db_password: 5ca80fa77f9d548a
+  tasks:
+    - name: ensure auth_database is created
+      postgresql_db:
+        name: '{{ auth_database }}'
+    - name: ensure user has access to auth_database
+      postgresql_user:
+        db: '{{ auth_database }}'
+        name: '{{ auth_db_user }}'
+        password: '{{ auth_db_password }}'
+        priv: ALL
+    - name: ensure user has no extra privileges
+      postgresql_user:
+        name: '{{ auth_db_user }}'
+        role_attr_flags: NOSUPERUSER,NOCREATEDB
+    - name: ensure no other user has access to auth_database
+      postgresql_privs:
+        db: '{{ auth_database }}'
+        role: PUBLIC
+        type: database
+        priv: ALL
+        state: absent
+    - name: ensure extension is created
+      postgresql_ext:
+        name: uuid-ossp
+        cascade: true
+        state: present
+        db: '{{ auth_database }}'
